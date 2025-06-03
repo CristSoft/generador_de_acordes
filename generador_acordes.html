@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Acordes</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body {
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .dark-mode {
+      background-color: #343a40;
+      color: #f8f9fa;
+    }
+
+    .light-mode {
+      background-color: #f8f9fa;
+      color: #212529;
+    }
+
+    header {
+      padding: 20px;
+      position: relative;
+    }
+
+    .dark-mode header {
+      background-color: #212529 !important;
+      color: #f8f9fa !important;
+    }
+
+    .light-mode header {
+      background-color: #0d6efd !important;
+      color: #fff !important;
+    }
+
+    .container {
+      max-width: 600px;
+      margin-top: 20px;
+      margin-bottom: 60px;
+    }
+
+    .dark-mode .svg-box {
+      border: 1px solid #212529;
+      background: #212529;
+      padding: 10px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .light-mode .svg-box {
+      border: 1px solid #dee2e6;
+      background: #ffffff;
+      padding: 10px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .floating-download {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1050;
+      display: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+
+    #themeToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: inherit;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+
+    body.light-mode #themeToggle .material-icons {
+      color: #212529;
+    }
+
+    body.dark-mode .btn-generate {
+      background-color: #212529;
+      border-color: #212529;
+      color: #f8f9fa;
+    }
+
+    body.light-mode .btn-generate {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+    }
+
+    .btn-generate:hover {
+      opacity: 0.9;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      padding: 5px 0;
+      font-size: 0.7rem;
+      border-top: 1px solid;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    body.light-mode .footer {
+      background-color: #f8f9fa;
+      color: #6c757d;
+      border-color: #dee2e6;
+    }
+
+    body.dark-mode .footer {
+      background-color: #212529;
+      color: #adb5bd;
+      border-color: #343a40;
+    }
+  </style>
+</head>
+
+<body class="dark-mode">
+  <header>
+    <h1 class="text-center">Generador de Acordes</h1>
+  </header>
+  <button id="themeToggle" onclick="toggleTheme()">
+    <span class="material-icons">light_mode</span>
+  </button>
+  <div class="container">
+    <div class="mb-3">
+      <label for="instrumentSelect" class="form-label">Selecciona Instrumento:</label>
+      <select class="form-select" id="instrumentSelect">
+        <option value="piano" selected>Piano</option>
+        <option value="guitar">Guitarra</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="chordInput" class="form-label">
+        Ingresa uno o varios acordes (separados por comas o saltos de línea, ej.: C, Dm, G7, A/D, 6/9, 9/2):
+      </label>
+      <textarea class="form-control" id="chordInput" rows="2" placeholder="C, Dm, G7, A/D, 6/9, 9/2, ..."></textarea>
+    </div>
+    <div class="mb-3 d-flex justify-content-around">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="switchNotes" checked onchange="toggleNoteNames()">
+        <label class="form-check-label" for="switchNotes">Ver Notas</label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="switchOctave" checked onchange="toggleOctaveNumbers()">
+        <label class="form-check-label" for="switchOctave">Ver Octavas</label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="switchChord" checked onchange="toggleChordName()">
+        <label class="form-check-label" for="switchChord">Nombre de Acorde</label>
+      </div>
+    </div>
+    <!-- Opciones de colores para piano -->
+    <div class="mb-3">
+      <div class="row">
+        <div class="col">
+          <label for="whiteKeyColorPicker" class="form-label">Color de blancas</label>
+          <input type="color" id="whiteKeyColorPicker" value="#ffffff">
+          <label for="whiteAlpha" class="form-label" style="font-size: 0.9rem;">Transparencia (0-100%)</label>
+          <input type="range" id="whiteAlpha" min="0" max="100" value="100">
+        </div>
+        <div class="col">
+          <label for="blackKeyColorPicker" class="form-label">Color de negras</label>
+          <input type="color" id="blackKeyColorPicker" value="#000224">
+          <label for="blackAlpha" class="form-label" style="font-size: 0.9rem;">Transparencia (0-100%)</label>
+          <input type="range" id="blackAlpha" min="0" max="100" value="100">
+        </div>
+        <div class="col">
+          <label for="highlightColorPicker" class="form-label">Color destacado</label>
+          <input type="color" id="highlightColorPicker" value="#c0a5e4">
+          <label for="highlightAlpha" class="form-label" style="font-size: 0.9rem;">Transparencia (0-100%)</label>
+          <input type="range" id="highlightAlpha" min="0" max="100" value="100">
+        </div>
+      </div>
+    </div>
+    <div id="guitarOptions" class="mb-3" style="display:none;">
+      <div class="row">
+        <div class="col">
+          <label for="guitarWidth" class="form-label">Ancho del acorde (px):</label>
+          <input type="number" id="guitarWidth" class="form-control" value="130">
+        </div>
+        <div class="col">
+          <label for="guitarHeight" class="form-label">Alto del acorde (px):</label>
+          <input type="number" id="guitarHeight" class="form-control" value="250">
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="d-grid gap-2">
+      <button class="btn btn-generate btn-lg rounded-pill" onclick="generateChords()">Generar</button>
+    </div>
+    <div id="svgContainer" class="svg-box"></div>
+  </div>
+  <button class="btn btn-danger floating-download" id="downloadBtn" onclick="downloadSVGs()">
+    <span class="material-icons">cloud_download</span>
+  </button>
+  <footer class="footer">
+    <p>&copy; 2025 Cristsoft. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <!-- Incluir el JS externo para acordes de guitarra -->
+  <!-- <script src="chord.js"></script> -->
+  <script>
+    // Variables globales para opciones de piano
+    let showOctaveNumbers = true, showNoteNames = true, showChordName = true;
+    document.getElementById("instrumentSelect").addEventListener("change", function () {
+      let instrument = this.value;
+      let guitarOptions = document.getElementById("guitarOptions");
+      guitarOptions.style.display = (instrument === "guitar") ? "block" : "none";
+    });
+
+    function GenerateGuitarChordSVG(name, positions, fingers, size, layout, stringNames, guitarColor1, guitarColor2, guitarColor3, customWidth, customHeight, showFingerNumbers) {
+      // Si no se especifica, ocultar los números de dedos por defecto
+      if (typeof showFingerNumbers === 'undefined') {
+        showFingerNumbers = false;
+      }
+
+      // Dimensiones básicas
+      let width = parseInt(customWidth) || 150;
+      let height = parseInt(customHeight) || 250;
+      const svgNS = "http://www.w3.org/2000/svg";
+      let svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", width);
+      svg.setAttribute("height", height);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.style.display = "block";
+      svg.style.margin = "0 auto";
+
+      // Fondo del SVG
+      let bgRect = document.createElementNS(svgNS, "rect");
+      bgRect.setAttribute("x", "0");
+      bgRect.setAttribute("y", "0");
+      bgRect.setAttribute("width", width);
+      bgRect.setAttribute("height", height);
+      bgRect.setAttribute("fill", guitarColor1);
+      svg.appendChild(bgRect);
+
+      // Definir márgenes: espacio para el nombre del acorde y separación
+      let chordNameMargin = 25; // Espacio para el nombre del acorde (ajusta este valor para separar más o menos)
+      let marginY = chordNameMargin + 40; // El diagrama se inicia 20px más abajo del nombre
+      let marginX = 15;
+      let numStrings = 6;
+      let numFrets = 5;
+      let spacingX = (width - 2 * marginX) / (numStrings - 1);
+      let spacingY = (height - marginY - 20) / numFrets; // 20px de margen inferior
+
+      // Calcular traste mínimo y máximo (ignorando "x", "-" y "0")
+      let minFret = Infinity, maxFret = 0;
+      for (let i = 0; i < positions.length; i++) {
+        let posChar = positions[i].toLowerCase();
+        if (posChar !== "x" && posChar !== "-" && posChar !== "0") {
+          let fret = parseInt(posChar);
+          if (fret < minFret) minFret = fret;
+          if (fret > maxFret) maxFret = fret;
+        }
+      }
+      // Si ningún dedo se ubica más allá del traste 5, se arma desde el traste 1
+      let baseFret = (maxFret <= 5) ? 1 : minFret;
+
+      // Dibujar cuerdas (líneas verticales)
+      let stringXs = [];
+      for (let i = 0; i < numStrings; i++) {
+        let x = marginX + i * spacingX;
+        stringXs.push(x);
+        let line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", x);
+        line.setAttribute("y1", marginY);
+        line.setAttribute("x2", x);
+        line.setAttribute("y2", marginY + numFrets * spacingY);
+        line.setAttribute("stroke", guitarColor2);
+        line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
+      }
+
+      // Dibujar trastes (líneas horizontales)
+      for (let i = 0; i <= numFrets; i++) {
+        let y = marginY + i * spacingY;
+        let line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", marginX);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", width - marginX);
+        line.setAttribute("y2", y);
+        // Dibujar la "nut" gruesa solo si se arma desde el traste 1
+        line.setAttribute("stroke", guitarColor2);
+        line.setAttribute("stroke-width", (i === 0 && baseFret === 1) ? "6" : "2");
+        svg.appendChild(line);
+      }
+
+      // Umbral para detectar mouse cerca de los costados (en px)
+      let sideThreshold = 20;
+
+      // Función para crear un grupo que contenga un círculo (y opcionalmente el número del dedo)
+      function drawCircle(x, y, finger) {
+        let g = document.createElementNS(svgNS, "g");
+        g.setAttribute("data-toggle", "dot");
+        let circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
+        circle.setAttribute("r", "10");
+        circle.setAttribute("fill", guitarColor3);
+        circle.setAttribute("stroke", guitarColor2);
+        circle.setAttribute("stroke-width", "1");
+        g.appendChild(circle);
+        if (showFingerNumbers && finger && finger !== "-" && finger.toUpperCase() !== "X") {
+          let text = document.createElementNS(svgNS, "text");
+          text.setAttribute("x", x);
+          text.setAttribute("y", y + 4);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("fill", guitarColor2);
+          text.setAttribute("font-size", "12");
+          text.textContent = finger;
+          g.appendChild(text);
+        }
+        svg.appendChild(g);
+      }
+
+      // Función para dibujar una barra (cejilla) que abarque todas las cuerdas en el traste dado
+      function drawBarre(fretIndex) {
+        let actualFret = baseFret + fretIndex - 1;
+        let y = marginY + (fretIndex - 0.5) * spacingY;
+        let startX = stringXs[0] - 10;
+        let endX = stringXs[stringXs.length - 1] + 10;
+        let barreWidth = endX - startX;
+        let g = document.createElementNS(svgNS, "g");
+        g.setAttribute("data-toggle", "barre");
+        g.setAttribute("data-fret", actualFret);
+        let rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", startX);
+        rect.setAttribute("y", y - 10);
+        rect.setAttribute("width", barreWidth);
+        rect.setAttribute("height", 20);
+        rect.setAttribute("rx", "10");
+        rect.setAttribute("fill", guitarColor3);
+        rect.setAttribute("stroke", guitarColor2);
+        rect.setAttribute("stroke-width", "1");
+        g.appendChild(rect);
+        // Mostrar el número de traste junto a la barra (en la parte derecha)
+        if (maxFret > 5) {
+          let fretLabel = document.createElementNS(svgNS, "text");
+          let labelX = endX + 5;
+          if (labelX > width - marginX) { labelX = width - marginX; }
+          fretLabel.setAttribute("x", labelX);
+          fretLabel.setAttribute("y", y + 4);
+          fretLabel.setAttribute("text-anchor", "start");
+          fretLabel.setAttribute("fill", guitarColor2);
+          fretLabel.setAttribute("font-size", "12"); // Cambia este valor para modificar el tamaño del número del traste
+          fretLabel.textContent = baseFret;
+          g.appendChild(fretLabel);
+        }
+        svg.appendChild(g);
+      }
+
+      // Agrupar posiciones por dedo y valor de traste para detectar cejilla ya existente
+      let barreGroups = {};
+      let drawnBarreIndices = new Set();
+      for (let i = 0; i < positions.length; i++) {
+        let posChar = positions[i].toLowerCase();
+        if (posChar === "x" || posChar === "-" || posChar === "0") continue;
+        let fret = parseInt(posChar);
+        let finger = fingers && fingers.length > i ? fingers[i] : "";
+        let key = finger + '_' + fret;
+        if (!barreGroups[key]) barreGroups[key] = [];
+        barreGroups[key].push(i);
+      }
+      // Dibujar cejillas para grupos con dos o más posiciones
+      for (let key in barreGroups) {
+        let group = barreGroups[key];
+        if (group.length >= 2) {
+          group.sort((a, b) => a - b);
+          let startIndex = group[0];
+          let endIndex = group[group.length - 1];
+          let parts = key.split('_');
+          let fret = parseInt(parts[1]);
+          let adjustedFret = fret - baseFret + 1;
+          let cy = marginY + (adjustedFret - 0.5) * spacingY;
+          let startX = marginX + startIndex * spacingX - 10;
+          let endX = marginX + endIndex * spacingX + 10;
+          let barreWidth = endX - startX;
+          let g = document.createElementNS(svgNS, "g");
+          g.setAttribute("data-toggle", "barre");
+          let rect = document.createElementNS(svgNS, "rect");
+          rect.setAttribute("x", startX);
+          rect.setAttribute("y", cy - 10);
+          rect.setAttribute("width", barreWidth);
+          rect.setAttribute("height", 20);
+          rect.setAttribute("rx", "10");
+          rect.setAttribute("fill", guitarColor3);
+          rect.setAttribute("stroke", guitarColor2);
+          rect.setAttribute("stroke-width", "1");
+          g.appendChild(rect);
+          if (showFingerNumbers && parts[0] && parts[0] !== "-" && parts[0].toUpperCase() !== "X") {
+            let text = document.createElementNS(svgNS, "text");
+            text.setAttribute("x", startX + barreWidth / 2);
+            text.setAttribute("y", cy + 4);
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("fill", guitarColor2);
+            text.setAttribute("font-size", "12");
+            text.textContent = parts[0];
+            g.appendChild(text);
+          }
+          if (maxFret > 5) {
+            let fretLabel = document.createElementNS(svgNS, "text");
+            let labelX = endX + 5;
+            if (labelX > width - marginX) { labelX = width - marginX; }
+            fretLabel.setAttribute("x", labelX);
+            fretLabel.setAttribute("y", cy + 4);
+            fretLabel.setAttribute("text-anchor", "start");
+            fretLabel.setAttribute("fill", guitarColor2);
+            fretLabel.setAttribute("font-size", "12");
+            fretLabel.textContent = baseFret;
+            g.appendChild(fretLabel);
+          }
+          svg.appendChild(g);
+          group.forEach(idx => drawnBarreIndices.add(idx));
+        }
+      }
+
+      // Dibujar marcas individuales para las posiciones que no fueron agrupadas en cejilla
+      for (let i = 0; i < positions.length; i++) {
+        let posChar = positions[i].toLowerCase();
+        if (posChar === "x" || posChar === "-" || posChar === "0") continue;
+        if (drawnBarreIndices.has(i)) continue;
+        let fret = parseInt(posChar);
+        let adjustedFret = fret - baseFret + 1;
+        let cy = marginY + (adjustedFret - 0.5) * spacingY;
+        let cx = marginX + i * spacingX;
+        let finger = fingers && fingers.length > i ? fingers[i] : "";
+        drawCircle(cx, cy, finger);
+      }
+
+      // Anotaciones superiores: mostrar "X" o "O" para cada cuerda
+      for (let i = 0; i < positions.length; i++) {
+        let posChar = positions[i];
+        let x = marginX + i * spacingX;
+        if (posChar.toLowerCase() === "x" || posChar === "-") {
+          let text = document.createElementNS(svgNS, "text");
+          text.setAttribute("x", x);
+          text.setAttribute("y", marginY - 10);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("fill", guitarColor2);
+          text.setAttribute("font-size", "14");
+          text.textContent = "X";
+          svg.appendChild(text);
+        } else if (posChar === "0") {
+          let text = document.createElementNS(svgNS, "text");
+          text.setAttribute("x", x);
+          text.setAttribute("y", marginY - 10);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("fill", guitarColor2);
+          text.setAttribute("font-size", "14");
+          text.textContent = "O";
+          svg.appendChild(text);
+        }
+      }
+
+      // Mostrar el nombre del acorde en la parte superior, usando el margen definido
+      if (document.getElementById("switchChord").checked) {
+        let nameText = document.createElementNS(svgNS, "text");
+        nameText.setAttribute("x", width / 2);
+        nameText.setAttribute("y", chordNameMargin);
+        nameText.setAttribute("text-anchor", "middle");
+        nameText.setAttribute("fill", guitarColor2);
+        nameText.setAttribute("font-size", "18");
+        nameText.textContent = name;
+        svg.appendChild(nameText);
+      }
+
+      // Función para obtener las coordenadas en el sistema de referencia del SVG
+      function getSVGCoordinates(evt) {
+        let pt = svg.createSVGPoint();
+        pt.x = evt.clientX;
+        pt.y = evt.clientY;
+        return pt.matrixTransform(svg.getScreenCTM().inverse());
+      }
+
+      // --- Nueva funcionalidad: Preview de barra al mover el mouse en los costados ---
+      // Listener para mousemove: mostrar previewBar solo si el mouse está fuera del área del diagrama
+      // Ghost elements globales
+      let previewBar = null;
+      let previewDot = null;
+
+      svg.addEventListener("mousemove", function (evt) {
+        let coords = getSVGCoordinates(evt);
+
+        if (
+          coords.x < marginX || coords.x > (width - marginX) ||
+          coords.y < marginY || coords.y > (marginY + numFrets * spacingY)
+        ) {
+          if (previewDot) {
+            previewDot.remove();
+            previewDot = null;
+          }
+
+          let relativeY = coords.y - marginY;
+          let fretIndex = Math.round(relativeY / spacingY + 0.5);
+          fretIndex = Math.max(1, Math.min(numFrets, fretIndex));
+          let y = marginY + (fretIndex - 0.5) * spacingY;
+
+          if (previewBar) {
+            previewBar.querySelector("rect").setAttribute("y", y - 10);
+          } else {
+            previewBar = document.createElementNS(svgNS, "g");
+            previewBar.setAttribute("data-toggle", "barre-preview");
+            let startX = stringXs[0] - 10;
+            let endX = stringXs[stringXs.length - 1] + 10;
+            let barreWidth = endX - startX;
+            let rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", startX);
+            rect.setAttribute("y", y - 10);
+            rect.setAttribute("width", barreWidth);
+            rect.setAttribute("height", 20);
+            rect.setAttribute("rx", "10");
+            rect.setAttribute("fill", guitarColor3);
+            rect.setAttribute("fill-opacity", "0.5");
+            rect.setAttribute("stroke", guitarColor2);
+            rect.setAttribute("stroke-width", "1");
+            previewBar.appendChild(rect);
+            svg.appendChild(previewBar);
+          }
+        } else {
+          if (previewBar) {
+            previewBar.remove();
+            previewBar = null;
+          }
+
+          let threshold = 15;
+          let nearestX = null;
+
+          for (let x of stringXs) {
+            if (Math.abs(coords.x - x) < threshold) {
+              nearestX = x;
+              break;
+            }
+          }
+
+          if (nearestX !== null) {
+            let relativeY = coords.y - marginY;
+            let fretIndex = Math.round(relativeY / spacingY + 0.5);
+            fretIndex = Math.max(1, Math.min(numFrets, fretIndex));
+            let y = marginY + (fretIndex - 0.5) * spacingY;
+
+            if (previewDot) {
+              previewDot.setAttribute("cx", nearestX);
+              previewDot.setAttribute("cy", y);
+            } else {
+              previewDot = document.createElementNS(svgNS, "circle");
+              previewDot.setAttribute("cx", nearestX);
+              previewDot.setAttribute("cy", y);
+              previewDot.setAttribute("r", "10");
+              previewDot.setAttribute("fill", guitarColor3);
+              previewDot.setAttribute("fill-opacity", "0.5");
+              previewDot.setAttribute("stroke", guitarColor2);
+              previewDot.setAttribute("stroke-width", "1");
+              svg.appendChild(previewDot);
+            }
+          } else if (previewDot) {
+            previewDot.remove();
+            previewDot = null;
+          }
+        }
+      });
+
+      // Evento para eliminar ghost al salir del canvas
+      svg.addEventListener("mouseleave", function () {
+        if (previewBar) {
+          previewBar.remove();
+          previewBar = null;
+        }
+        if (previewDot) {
+          previewDot.remove();
+          previewDot = null;
+        }
+      });
+      // Listener para clicks:
+      // Si existe una barra preview visible, se finaliza la barra (se crea la definitiva) y se elimina el preview.
+      // Si no, se procede a la funcionalidad normal para colocar puntos sobre las cuerdas.
+      svg.addEventListener("click", function (evt) {
+        let coords = getSVGCoordinates(evt);
+
+        // Si se clickea en un ghost de barra (previewBar)
+        if (previewBar) {
+          let previewRect = previewBar.querySelector("rect");
+          let y = parseFloat(previewRect.getAttribute("y")) + 10;
+          let fretIndex = Math.round((y - marginY) / spacingY + 0.5);
+          let actualFret = baseFret + fretIndex - 1;
+
+          let isLeftSide = coords.x < marginX;
+
+          let existingBarre = svg.querySelector(`[data-toggle="barre"][data-fret="${actualFret}"]`);
+
+          if (existingBarre) {
+            let barreRect = existingBarre.querySelector("rect");
+            let barreStartX = parseFloat(barreRect.getAttribute("x"));
+            let barreEndX = barreStartX + parseFloat(barreRect.getAttribute("width"));
+
+            let currentEndStringIndex = stringXs.findIndex(x => Math.abs((x - 10) - barreStartX) < 2);
+
+            if ((isLeftSide && currentEndStringIndex === 0) || (!isLeftSide && currentEndStringIndex === 5)) {
+              existingBarre.remove(); // eliminar barra si clickeaste en mismo extremo
+            } else {
+              existingBarre.remove(); // reemplazar barra existente
+              drawBarre(fretIndex, isLeftSide ? 0 : 5);
+            }
+          } else {
+            // eliminar otras barras si existieran
+            svg.querySelectorAll('[data-toggle="barre"]').forEach(bar => bar.remove());
+            drawBarre(fretIndex, isLeftSide ? 0 : 5);
+          }
+
+          previewBar.remove();
+          previewBar = null;
+          return;
+        }
+
+        // Si clickeas en una cuerda dentro del diagrama
+        if (previewDot) {
+          let cx = parseFloat(previewDot.getAttribute("cx"));
+          let cy = parseFloat(previewDot.getAttribute("cy"));
+          previewDot.remove();
+          previewDot = null;
+
+          let clickedStringIndex = stringXs.findIndex(x => Math.abs(x - cx) < 1);
+          let fretIndex = Math.round((cy - marginY) / spacingY + 0.5);
+          let actualFret = baseFret + fretIndex - 1;
+
+          let existingBarre = svg.querySelector(`[data-toggle="barre"][data-fret="${actualFret}"]`);
+
+          if (existingBarre) {
+            let barreRect = existingBarre.querySelector("rect");
+            existingBarre.remove();
+
+            if (clickedStringIndex < 5) { // No se permite extender barra hacia cuerda 1 (derecha)
+              drawBarre(fretIndex, clickedStringIndex);
+            }
+            // No se dibuja círculo individual
+          } else {
+            // Agrega o quita círculo individual normal
+            let existingDot = Array.from(svg.querySelectorAll('[data-toggle="dot"]')).find(dot => {
+              let existingCx = parseFloat(dot.querySelector("circle").getAttribute("cx"));
+              let existingCy = parseFloat(dot.querySelector("circle").getAttribute("cy"));
+              return Math.abs(existingCx - cx) < 1 && Math.abs(existingCy - cy) < 1;
+            });
+
+            if (existingDot) {
+              existingDot.remove();
+            } else {
+              drawCircle(cx, cy);
+            }
+          }
+        }
+      });
+
+      // Función drawBarre ajustada (de cuerda 1 hacia la izquierda)
+      function drawBarre(fretIndex, endStringIndex = 0) {
+        let actualFret = baseFret + fretIndex - 1;
+        let y = marginY + (fretIndex - 0.5) * spacingY;
+
+        let startX = stringXs[5] + 10; // cuerda 1 (derecha)
+        let endX = stringXs[endStringIndex] - 10; // cuerda clickeada
+        let barreWidth = startX - endX;
+
+        let g = document.createElementNS(svgNS, "g");
+        g.setAttribute("data-toggle", "barre");
+        g.setAttribute("data-fret", actualFret);
+
+        let rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", endX);
+        rect.setAttribute("y", y - 10);
+        rect.setAttribute("width", barreWidth);
+        rect.setAttribute("height", 20);
+        rect.setAttribute("rx", "10");
+        rect.setAttribute("fill", guitarColor3);
+        rect.setAttribute("stroke", guitarColor2);
+        rect.setAttribute("stroke-width", "1");
+        g.appendChild(rect);
+
+        if (baseFret > 1) {
+          let fretLabel = document.createElementNS(svgNS, "text");
+          fretLabel.setAttribute("x", startX + 5);
+          fretLabel.setAttribute("y", y + 4);
+          fretLabel.setAttribute("text-anchor", "start");
+          fretLabel.setAttribute("fill", guitarColor2);
+          fretLabel.setAttribute("font-size", "12");
+          fretLabel.textContent = baseFret;
+          g.appendChild(fretLabel);
+        }
+
+        svg.appendChild(g);
+      }
+
+      // Agrega números de cuerdas debajo claramente
+      function addStringNumbers() {
+        svg.querySelectorAll('.string-number').forEach(el => el.remove());
+
+        let string6Label = document.createElementNS(svgNS, "text");
+        string6Label.setAttribute("x", stringXs[0]);
+        string6Label.setAttribute("y", marginY + numFrets * spacingY + 20);
+        string6Label.setAttribute("text-anchor", "middle");
+        string6Label.setAttribute("fill", guitarColor2);
+        string6Label.setAttribute("font-size", "14");
+        string6Label.setAttribute("class", "string-number");
+        string6Label.textContent = "6";
+        svg.appendChild(string6Label);
+
+        let string1Label = document.createElementNS(svgNS, "text");
+        string1Label.setAttribute("x", stringXs[5]);
+        string1Label.setAttribute("y", marginY + numFrets * spacingY + 20);
+        string1Label.setAttribute("text-anchor", "middle");
+        string1Label.setAttribute("fill", guitarColor2);
+        string1Label.setAttribute("font-size", "14");
+        string1Label.setAttribute("class", "string-number");
+        string1Label.textContent = "1";
+        svg.appendChild(string1Label);
+      }
+
+      // Llama esta función justo después de generar tu SVG
+      addStringNumbers();
+
+      // Agregar números de cuerdas 1 y 6 debajo del diagrama
+      function addStringNumbers() {
+        // Remover números anteriores (si existen)
+        svg.querySelectorAll('.string-number').forEach(el => el.remove());
+
+        // Número cuerda 6 (izquierda)
+        let string6Label = document.createElementNS(svgNS, "text");
+        string6Label.setAttribute("x", stringXs[0]);
+        string6Label.setAttribute("y", marginY + numFrets * spacingY + 20);
+        string6Label.setAttribute("text-anchor", "middle");
+        string6Label.setAttribute("fill", guitarColor2);
+        string6Label.setAttribute("font-size", "14");
+        string6Label.setAttribute("class", "string-number");
+        string6Label.textContent = "6";
+        svg.appendChild(string6Label);
+
+        // Número cuerda 1 (derecha)
+        let string1Label = document.createElementNS(svgNS, "text");
+        string1Label.setAttribute("x", stringXs[5]);
+        string1Label.setAttribute("y", marginY + numFrets * spacingY + 20);
+        string1Label.setAttribute("text-anchor", "middle");
+        string1Label.setAttribute("fill", guitarColor2);
+        string1Label.setAttribute("font-size", "14");
+        string1Label.setAttribute("class", "string-number");
+        string1Label.textContent = "1";
+        svg.appendChild(string1Label);
+      }
+
+      // Llama esta función justo después de generar el SVG
+      addStringNumbers();
+
+      return svg;
+    }
+
+    // Función para exportar los acordes generados (por ejemplo, en el contenedor con id "svgContainer")
+    /* util simple */
+    function safeFileName(str) {
+      return str.trim().replace(/[\/\\]/g, '-').replace(/\s+/g, '');
+    }
+
+    /* muestra/oculta el botón según haya SVG en pantalla */
+    function updateDownloadButton() {
+      const btn = document.getElementById("downloadBtn");
+      btn.style.display = document.querySelector("#svgContainer svg")
+        ? "block"
+        : "none";
+    }
+
+    /* -------- GENERAR ACORDES -------- */
+    function generateChords() {
+      const raw = document.getElementById("chordInput").value;
+      if (!raw.trim()) { alert("Ingresá al menos un acorde"); return; }
+
+      const chordsInput = raw.split(/[\n,]+/)
+        .map(c => c.trim())
+        .filter(Boolean)
+        .map(c => c.charAt(0).toUpperCase() + c.slice(1));
+
+      const instr = document.getElementById("instrumentSelect").value;
+      const container = document.getElementById("svgContainer");
+      container.innerHTML = "";
+
+      /* ---------- PIANO ---------- */
+      if (instr === "piano") {
+        chordsInput.forEach(ch => {
+          const data = parseChordBinary(ch);
+          if (!data) return;
+          let svg = generateKeyboardSVG(data);  // string
+          svg = svg.replace("<svg ", "<svg data-chord-name=\"" + safeFileName(ch) + "\" ");
+          container.innerHTML += svg + "<br><br>";
+        });
+        updateDownloadButton();        // ya se generó todo
+
+        /* ---------- GUITARRA ---------- */
+      } else {   // guitar
+        fetch('./chords.json?cb=' + Date.now(), { cache: 'no-store' })
+          .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(db => {
+            chordsInput.forEach(ch => {
+              const entry = (db[ch] || [{}])[0];
+              if (!entry.positions) {
+                container.innerHTML += `<p>No existe ${ch}</p>`;
+                return;
+              }
+              const pos = entry.positions.join("");
+              const fing = entry.fingerings[0].join("");
+              const w = document.getElementById("guitarWidth").value;
+              const h = document.getElementById("guitarHeight").value;
+              const c1 = document.getElementById("whiteKeyColorPicker").value;
+              const c2 = document.getElementById("blackKeyColorPicker").value;
+              const c3 = document.getElementById("highlightColorPicker").value;
+
+              const svgNode = GenerateGuitarChordSVG(
+                ch, pos, fing,
+                entry.size || "7", "1", "",
+                c1, c2, c3, w, h
+              );
+              svgNode.setAttribute("data-chord-name", safeFileName(ch));
+              container.appendChild(svgNode);
+              container.appendChild(document.createElement("br"));
+            });
+            updateDownloadButton();    // ahora sí: ya hay SVG o no
+          })
+          .catch(e => {
+            console.error(e);
+            container.innerHTML = "<p>Error al leer chords.json</p>";
+            updateDownloadButton();
+          });
+      }
+    }
+
+    /* -------- DESCARGAR SVGs -------- */
+    function downloadSVGs() {
+      const svgs = document.querySelectorAll("#svgContainer svg");
+      if (!svgs.length) return;
+
+      const zip = new JSZip();
+      svgs.forEach((svg, i) => {
+        const name = safeFileName(svg.getAttribute("data-chord-name") || `acorde_${i + 1}`);
+        const xml = new XMLSerializer().serializeToString(svg);
+        zip.file(name + ".svg", xml);
+      });
+
+      zip.generateAsync({ type: "blob" }).then(blob => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "acordes.zip";
+        a.click();
+      });
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const themeToggle = document.getElementById("themeToggle");
+      if (body.classList.contains("dark-mode")) {
+        body.classList.remove("dark-mode");
+        body.classList.add("light-mode");
+        themeToggle.innerHTML = '<span class="material-icons">dark_mode</span>';
+      } else {
+        body.classList.remove("light-mode");
+        body.classList.add("dark-mode");
+        themeToggle.innerHTML = '<span class="material-icons">light_mode</span>';
+      }
+    }
+    function toggleOctaveNumbers() { showOctaveNumbers = !showOctaveNumbers; if (document.getElementById("chordInput").value.trim() !== "") { generateChords(); } }
+    function toggleNoteNames() { showNoteNames = !showNoteNames; if (document.getElementById("chordInput").value.trim() !== "") { generateChords(); } }
+    function toggleChordName() { showChordName = !showChordName; if (document.getElementById("chordInput").value.trim() !== "") { generateChords(); } }
+    // function downloadSVGs() {
+    //   if (!document.getElementById("svgContainer").innerHTML) return;
+    //   let zip = new JSZip();
+    //   const parser = new DOMParser();
+    //   const container = document.getElementById("svgContainer");
+    //   const svgs = container.querySelectorAll("svg");
+    //   svgs.forEach((svg, index) => {
+    //     let serializer = new XMLSerializer();
+    //     let svgStr = serializer.serializeToString(svg);
+    //     zip.file(`acorde_${index + 1}.svg`, svgStr);
+    //   });
+    //   zip.generateAsync({ type: "blob" }).then(content => {
+    //     let a = document.createElement("a");
+    //     a.href = URL.createObjectURL(content);
+    //     a.download = "acordes.zip";
+    //     a.click();
+    //   });
+    // }
+    document.getElementById('chordInput').addEventListener('change', function () {
+      let chords = this.value.split(/[\n,]+/);
+      let formattedChords = chords.map(ch => {
+        ch = ch.trim();
+        if (!ch) return "";
+        return ch.charAt(0).toUpperCase() + ch.slice(1);
+      }).filter(Boolean);
+      this.value = formattedChords.join(", ");
+    });
+
+    // --- Funciones para generación de acordes de piano ---
+    const noteToSemitone = {
+      "C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3,
+      "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11
+    };
+    const semitoneNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const chordFormulas = {
+      "": [0, 4, 7],
+      "m": [0, 3, 7],
+      "dim": [0, 3, 6],
+      "aug": [0, 4, 8],
+      "maj7": [0, 4, 7, 11],
+      "7": [0, 4, 7, 10],
+      "m7": [0, 3, 7, 10],
+      "m7b5": [0, 3, 6, 10],
+      "ø": [0, 3, 6, 10],
+      "dim7": [0, 3, 6, 9],
+      "6": [0, 4, 7, 9],
+      "sus4": [0, 5, 7],
+      "7sus4": [0, 5, 7, 10],
+      "5": [0, 7],
+      "sus2": [0, 2, 7],
+      "add9": [0, 4, 7, 14],
+      "m9": [0, 3, 7, 10, 14],
+      "maj9": [0, 4, 7, 11, 14],
+      "6/9": [0, 2, 4, 7, 9],
+      "11": [0, 4, 7, 10, 14, 17],
+      "13": [0, 4, 7, 10, 14, 21],
+      "9": [0, 2, 4, 7],
+      "m6": [0, 3, 7, 9],
+      "m11": [0, 3, 7, 10, 14, 17],
+      "m13": [0, 3, 7, 10, 14, 21],
+      "maj11": [0, 4, 7, 11, 14, 17],
+      "maj13": [0, 4, 7, 11, 14, 21],
+      "sus9": [0, 2, 5, 7]
+    };
+    function normalizeNote(note) {
+      if (note.includes("/")) {
+        return note.split("/").map(part => normalizeNote(part)).join("/");
+      }
+      note = note.trim();
+      const fixedCorrections = { "Fb": "E", "E#": "F", "Cb": "B", "B#": "C" };
+      if (fixedCorrections[note]) return fixedCorrections[note];
+      const regex = /^([A-G])([b#]+)?$/;
+      const match = note.match(regex);
+      if (match) {
+        const naturalSemitones = { "C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11 };
+        const semitoneToSharp = { 0: "C", 1: "C#", 2: "D", 3: "D#", 4: "E", 5: "F", 6: "F#", 7: "G", 8: "G#", 9: "A", 10: "A#", 11: "B" };
+        let base = match[1].toUpperCase();
+        let accidentals = match[2] || "";
+        let semitone = naturalSemitones[base];
+        for (let char of accidentals) {
+          if (char === "#") { semitone++; }
+          else if (char === "b") { semitone--; }
+        }
+        semitone = (semitone % 12 + 12) % 12;
+        return semitoneToSharp[semitone];
+      }
+      return note;
+    }
+    function parseChordSymbol(chordSymbol) {
+      chordSymbol = chordSymbol.trim();
+      let parts = chordSymbol.split("/");
+      let inversion = parts[1] ? parts[1].trim() : null;
+      const baseSymbol = parts[0].trim();
+      const regex = /^([A-G])((?:#|b)?)(.*)$/;
+      const match = baseSymbol.match(regex);
+      if (!match) return null;
+      let root = match[1] + match[2];
+      let type = match[3].trim();
+      if (type === "") type = "";
+      return {
+        root: normalizeNote(root),
+        type,
+        inversion: inversion ? normalizeNote(inversion) : null
+      };
+    }
+    function getInversionIntervals(intervals, inversionIndex) {
+      const n = intervals.length;
+      let newIntervals = [];
+      for (let i = inversionIndex; i < n; i++) {
+        newIntervals.push(intervals[i] - intervals[inversionIndex]);
+      }
+      for (let i = 0; i < inversionIndex; i++) {
+        newIntervals.push(intervals[i] - intervals[inversionIndex] + 12);
+      }
+      return newIntervals;
+    }
+    function intervalsToBinary(intervals) {
+      let binaryArr = new Array(18).fill("0");
+      intervals.forEach(interval => { if (interval < 18) binaryArr[interval] = "1"; });
+      return binaryArr.join("");
+    }
+    function chordToBinary(chordSymbol) {
+      const parsed = parseChordSymbol(chordSymbol);
+      if (!parsed) return { error: "Símbolo de acorde no válido." };
+      const { root, type, inversion } = parsed;
+      if (!(type in chordFormulas)) {
+        return { error: "Tipo de acorde no soportado: " + type };
+      }
+      const baseIntervals = chordFormulas[type];
+      const baseOctave = 4;
+      const rootValue = noteToSemitone[root];
+      if (!inversion) {
+        const n = baseIntervals.length;
+        let best = null;
+        for (let inv = 0; inv < n; inv++) {
+          const invIntervals = getInversionIntervals(baseIntervals, inv);
+          const maxInterval = Math.max(...invIntervals);
+          if (maxInterval < 18) { best = { inversion: inv, intervals: invIntervals, maxInterval }; break; }
+          if (!best || maxInterval < best.maxInterval) { best = { inversion: inv, intervals: invIntervals, maxInterval }; }
+        }
+        const p1Value = (rootValue + baseIntervals[best.inversion]) % 12;
+        const p1 = semitoneNames[p1Value];
+        return { p1, binary: intervalsToBinary(best.intervals), inversion: best.inversion, slash: false };
+      } else {
+        const bassValue = noteToSemitone[inversion] % 12;
+        const chordTones = baseIntervals.map(interval => (rootValue + interval) % 12);
+        if (chordTones.includes(bassValue)) {
+          let invIndex = chordTones.indexOf(bassValue);
+          const invIntervals = getInversionIntervals(baseIntervals, invIndex);
+          const p1Value = (rootValue + baseIntervals[invIndex]) % 12;
+          const p1 = semitoneNames[p1Value];
+          return { p1, binary: intervalsToBinary(invIntervals), inversion: invIndex, slash: true };
+        } else {
+          const rootAbs = rootValue + baseOctave * 12;
+          let chordTonesAbs = baseIntervals.map(interval => rootAbs + interval);
+          const bassAbs = noteToSemitone[inversion] + baseOctave * 12;
+          chordTonesAbs = chordTonesAbs.map(tone => {
+            while (tone < bassAbs) { tone += 12; }
+            return tone;
+          });
+          let finalTones = [bassAbs].concat(chordTonesAbs);
+          finalTones.sort((a, b) => a - b);
+          let newIntervals = finalTones.map(tone => tone - bassAbs);
+          return { p1: inversion, binary: intervalsToBinary(newIntervals), inversion: 0, slash: true };
+        }
+      }
+    }
+    function parseChordBinary(chordStr) {
+      chordStr = chordStr.trim();
+      if (!chordStr) { alert("Por favor, ingresa un acorde."); return null; }
+      let result = chordToBinary(chordStr);
+      if (result.error) { alert(result.error); return null; }
+      let baseOctave = 4;
+      let baseSemitone = noteToSemitone[result.p1] + baseOctave * 12;
+      let chordNotes = [];
+      for (let i = 0; i < result.binary.length; i++) {
+        if (result.binary[i] === "1") {
+          let noteValue = baseSemitone + i;
+          let noteName = semitoneNames[noteValue % 12];
+          let octave = Math.floor(noteValue / 12);
+          chordNotes.push({ note: noteName, octave: octave });
+        }
+      }
+      return {
+        chordNotes: chordNotes,
+        label: chordStr,
+        p1: result.p1,
+        binary: result.binary,
+        inversion: (result.inversion !== undefined) ? result.inversion : null,
+        slash: result.slash,
+        root: parseChordSymbol(chordStr).root
+      };
+    }
+    function generateKeyboardSVG(chordData) {
+      let whiteHex = document.getElementById("whiteKeyColorPicker").value;
+      let whiteAlpha = document.getElementById("whiteAlpha").value / 100;
+      let blackHex = document.getElementById("blackKeyColorPicker").value;
+      let blackAlpha = document.getElementById("blackAlpha").value / 100;
+      let highlightHex = document.getElementById("highlightColorPicker").value;
+      let highlightAlpha = document.getElementById("highlightAlpha").value / 100;
+      let whiteNormalColor = getRgba(whiteHex, whiteAlpha);
+      let blackNormalColor = getRgba(blackHex, blackAlpha);
+      let highlightColor = getRgba(highlightHex, highlightAlpha);
+      const whiteKeyWidth = 50, whiteKeyHeight = 200, blackKeyWidth = 30, blackKeyHeight = 120, marginTop = 30;
+      const whiteOrder = ["C", "D", "E", "F", "G", "A", "B"];
+      let virtualWhiteKeys = [];
+      for (let octave = 3; octave <= 5; octave++) {
+        for (let i = 0; i < whiteOrder.length; i++) {
+          virtualWhiteKeys.push({ note: whiteOrder[i], octave: octave, x: virtualWhiteKeys.length * whiteKeyWidth });
+        }
+      }
+      const totalWhiteKeys = virtualWhiteKeys.length;
+      const containerWhiteKeys = 10;
+      const containerWidth = containerWhiteKeys * whiteKeyWidth;
+      const svgHeight = marginTop + whiteKeyHeight + 20;
+      let indices = [];
+      chordData.chordNotes.forEach(ch => {
+        if (!ch.note.includes("#")) {
+          let idx = whiteOrder.indexOf(ch.note);
+          if (idx !== -1) { indices.push((ch.octave - 3) * 7 + idx); }
+        } else {
+          let idx = whiteOrder.indexOf(ch.note[0]);
+          if (idx !== -1) { indices.push((ch.octave - 3) * 7 + idx + 0.5); }
+        }
+      });
+      let centerIndex = indices.length ? (Math.min(...indices) + Math.max(...indices)) / 2 : totalWhiteKeys / 2;
+      let startIndex = Math.round(centerIndex - containerWhiteKeys / 2);
+      if (startIndex < 0) startIndex = 0;
+      if (startIndex > totalWhiteKeys - containerWhiteKeys) startIndex = totalWhiteKeys - containerWhiteKeys;
+      let viewBoxX = startIndex * whiteKeyWidth;
+      let svg = `<svg width="80%" viewBox="${viewBoxX} 0 ${containerWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="display:block; margin: 0 auto;">`;
+      if (showChordName) {
+        svg += `<text x="${viewBoxX + containerWidth / 2}" y="20" text-anchor="middle" font-size="18" fill="black">
+          ${formatChordLabel(chordData.label)}
+        </text>`;
+      }
+      virtualWhiteKeys.forEach((key) => {
+        let highlight = chordData.chordNotes.some(ch => (!ch.note.includes("#") && key.note === ch.note && key.octave === ch.octave));
+        let fillColor = highlight ? highlightColor : whiteNormalColor;
+        svg += `<rect x="${key.x}" y="${marginTop}" width="${whiteKeyWidth}" height="${whiteKeyHeight}"
+          fill="${fillColor}" stroke="black" data-normal-fill="${whiteNormalColor}" onclick="toggleKeyColor(event)" ontouchstart="toggleKeyColor(event)" />`;
+        if (showNoteNames) {
+          let label = key.note;
+          if (showOctaveNumbers) { label += key.octave; }
+          svg += `<text x="${key.x + whiteKeyWidth / 2}" y="${marginTop + whiteKeyHeight - 10}" text-anchor="middle" font-size="16" fill="black">${label}</text>`;
+        }
+      });
+      virtualWhiteKeys.forEach((key) => {
+        if (key.note === "E" || key.note === "B") return;
+        if (["C", "D", "F", "G", "A"].includes(key.note)) {
+          let x = key.x + whiteKeyWidth - (blackKeyWidth / 2);
+          const mapping = { "C": "C#", "D": "D#", "F": "F#", "G": "G#", "A": "A#" };
+          let blackNote = mapping[key.note];
+          let highlight = chordData.chordNotes.some(ch => ch.note === blackNote && ch.octave === key.octave);
+          let fillColor = highlight ? highlightColor : blackNormalColor;
+          svg += `<rect x="${x}" y="${marginTop}" width="${blackKeyWidth}" height="${blackKeyHeight}"
+            fill="${fillColor}" stroke="black" data-normal-fill="${blackNormalColor}" onclick="toggleKeyColor(event)" ontouchstart="toggleKeyColor(event)" />`;
+        }
+      });
+      svg += `</svg>`;
+      return svg;
+    }
+
+    function setupKeyboardGhosts() {
+      const svgContainer = document.getElementById('svgContainer');
+
+      svgContainer.addEventListener('mousemove', (event) => {
+        const target = event.target;
+        if (target.tagName === 'rect' && !target.dataset.toggled) {
+          clearGhosts();
+          target.dataset.originalFill = target.getAttribute('fill');
+          target.setAttribute('fill', '#cccccc'); // Color gris para la previsualización
+          target.dataset.ghost = "true";
+        } else {
+          clearGhosts();
+        }
+      });
+
+      svgContainer.addEventListener('mouseleave', clearGhosts);
+
+      svgContainer.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.tagName === 'rect') {
+          clearGhosts();
+          target.setAttribute('fill', document.getElementById("highlightColorPicker").value);
+          target.dataset.toggled = "true";
+        }
+      });
+
+      function clearGhosts() {
+        document.querySelectorAll('[data-ghost="true"]').forEach(key => {
+          key.setAttribute('fill', key.dataset.originalFill);
+          delete key.dataset.ghost;
+        });
+      }
+    }
+
+    function getRgba(hex, alpha) {
+      hex = hex.replace('#', '');
+      let bigint = parseInt(hex, 16);
+      let r, g, b;
+      if (hex.length === 3) {
+        r = (bigint >> 8) & 0xF;
+        g = (bigint >> 4) & 0xF;
+        b = bigint & 0xF;
+        r = (r << 4) | r;
+        g = (g << 4) | g;
+        b = (b << 4) | b;
+      } else {
+        r = (bigint >> 16) & 255;
+        g = (bigint >> 8) & 255;
+        b = bigint & 255;
+      }
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    function toggleKeyColor(evt) {
+      evt.preventDefault();
+      const key = evt.target.closest('rect');
+      if (!key) return;
+
+      const highlight = document.getElementById("highlightColorPicker").value;
+      const normal = key.getAttribute("data-normal-fill");
+
+      console.log("antes:", key.hasAttribute("data-toggled"), "fill actual:", key.getAttribute("fill"));
+
+      if (key.hasAttribute("data-toggled")) {
+        // Despintar
+        key.removeAttribute("data-toggled");
+        key.setAttribute("fill", normal);
+        console.log("-> despintado, fill ahora:", key.getAttribute("fill"));
+      } else {
+        // Pintar
+        key.setAttribute("data-toggled", "");
+        key.setAttribute("fill", highlight);
+        console.log("-> pintado, fill ahora:", key.getAttribute("fill"));
+      }
+    }
+    function formatChordLabel(chord) { if (!chord || chord.length === 0) return chord; return chord.charAt(0).toUpperCase() + chord.slice(1); }
+
+
+    //chord.js
+    var ChordJS = (function () {
+
+      // Constantes
+      var NO_FINGER = '-';
+      var THUMB = 'T';
+      var INDEX_FINGER = '1';
+      var MIDDLE_FINGER = '2';
+      var RING_FINGER = '3';
+      var LITTLE_FINGER = '4';
+      var OPEN = 0;
+      var MUTED = -1;
+      var FRET_COUNT = 5;
+      var FONT_NAME = "Arial";
+
+      // Constructor de imagen de acorde modificado para aceptar colores personalizados.
+      // Los nuevos parámetros son:
+      //   fgColor: color de las líneas y textos (por defecto: '#000')
+      //   bgColor: color de fondo del diagrama (por defecto: '#FFF')
+      //   highlightColor: color para rellenar los círculos de los dedos (por defecto: fgColor)
+      var ChordBoxImage = function (name, chord, fingers, size, stringNames, fgColor, bgColor, highlightColor) {
+
+        // Se asignan los colores tomando los valores pasados o usando valores por defecto.
+        var _foregroundBrush = fgColor || '#000';
+        var _backgroundBrush = bgColor || '#FFF';
+        // El color destacado se usará para los círculos de digitación (dedos)
+        var _highlightBrush = highlightColor || _foregroundBrush;
+
+        var _ctx;
+        var Pen = function (color, size) {
+          return function () {
+            _ctx.strokeStyle = color;
+            _ctx.lineWidth = size;
+            _ctx.lineCap = 'round';
+          };
+        };
+        var Font = function (fname, size) {
+          return function () {
+            _ctx.font = size + "px " + fname;
+            _ctx.textBaseline = 'top';
+          };
+        };
+        var _graphics = (function () {
+          var DrawLine = function (pen, x1, y1, x2, y2) {
+            _ctx.beginPath();
+            pen();
+            _ctx.moveTo(x1, y1);
+            _ctx.lineTo(x2, y2);
+            _ctx.stroke();
+          };
+          var FillRectangle = function (color, x1, y1, x2, y2) {
+            _ctx.beginPath();
+            _ctx.fillStyle = color;
+            _ctx.rect(x1, y1, x2, y2);
+            _ctx.fill();
+          };
+          var DrawCircle = function (pen, x1, y1, diameter) {
+            var radius = diameter / 2;
+            _ctx.beginPath();
+            pen();
+            _ctx.arc(x1 + radius, y1 + radius, radius, 0, 2 * Math.PI, false);
+            _ctx.stroke();
+          };
+          var FillCircle = function (color, x1, y1, diameter) {
+            var radius = diameter / 2;
+            _ctx.beginPath();
+            _ctx.fillStyle = color;
+            _ctx.arc(x1 + radius, y1 + radius, radius, 0, 2 * Math.PI, false);
+            _ctx.fill();
+          };
+          var MeasureString = function (text, font) {
+            font();
+            var metrics = _ctx.measureText(text);
+            metrics.Width = metrics.width;
+            metrics.Height = _ctx.measureText('M').width;
+            return metrics;
+          };
+          var DrawString = function (text, font, color, x, y) {
+            font();
+            _ctx.fillStyle = color;
+            _ctx.fillText(text, x, y);
+          };
+          return {
+            DrawLine: DrawLine,
+            FillRectangle: FillRectangle,
+            DrawCircle: DrawCircle,
+            FillCircle: FillCircle,
+            MeasureString: MeasureString,
+            DrawString: DrawString,
+          };
+        })();
+
+        var _size;
+        var _chordPositions = [];
+        var _fingers = [NO_FINGER, NO_FINGER, NO_FINGER, NO_FINGER, NO_FINGER, NO_FINGER];
+
+        var _stringNames = stringNames || 'EADGBe';
+        var _chordName;
+        var _error;
+
+        var _fretWidth;
+        var _lineWidth;
+        var _boxWidth;
+        var _boxHeight;
+
+        var _imageWidth;
+        var _imageHeight;
+        var _xstart;
+        var _ystart;
+        var _nutHeight;
+
+        var _dotWidth;
+        var _signWidth;
+        var _signRadius;
+
+        var _fretFontSize;
+        var _fingerFontSize;
+        var _nameFontSize;
+        var _superScriptFontSize;
+        var _markerWidth;
+
+        var _baseFret;
+
+        var InitializeSizes = function () {
+          _fretWidth = 4 * _size;
+          _nutHeight = _fretWidth / 2;
+          _lineWidth = Math.ceil(_size * 0.31);
+          _dotWidth = Math.ceil(0.9 * _fretWidth);
+          _markerWidth = 0.7 * _fretWidth;
+          _boxWidth = 5 * _fretWidth + 6 * _lineWidth;
+          _boxHeight = FRET_COUNT * (_fretWidth + _lineWidth) + _lineWidth;
+
+          var perc = 0.8;
+          _fretFontSize = _fretWidth / perc;
+          _fingerFontSize = _fretWidth * 0.8;
+          _guitarStringFontSize = 'bold ' + (_fretWidth * 0.8);
+          _nameFontSize = _fretWidth * 2 / perc;
+          _superScriptFontSize = 0.7 * _nameFontSize;
+          if (_size == 1) {
+            _nameFontSize += 2;
+            _fingerFontSize += 2;
+            _fretFontSize += 2;
+            _superScriptFontSize += 2;
+          }
+
+          _xstart = _fretWidth;
+          _ystart = Math.round(0.2 * _superScriptFontSize + _nameFontSize + _nutHeight + 1.7 * _markerWidth);
+
+          _imageWidth = (_boxWidth + 2 * _fretWidth);
+          _imageHeight = (_boxHeight + _ystart + _fretWidth + _fretWidth);
+
+          _signWidth = (_fretWidth * 0.75);
+          _signRadius = _signWidth / 2;
+        };
+
+        var getWidth = function () { return _imageWidth; };
+        var getHeight = function () { return _imageHeight; };
+
+        var ParseSize = function (size) {
+          _size = parseFloat(size);
+          if (isNaN(_size)) {
+            _size = 1;
+          }
+        };
+
+        var ParseFingers = function (fingers) {
+          fingers = String(fingers).toUpperCase() + '------';
+          fingers = fingers.replace(/[^\-T1234]/g, '');
+          _fingers = fingers.substr(0, 6).split('');
+        };
+
+        var ParseChord = function (chord) {
+          if (chord == null || typeof chord == 'undefined' || !chord.match(/[\dxX]{6}|((1|2)?[\dxX]-){5}(1|2)?[\dxX]/)) {
+            _error = true;
+          } else {
+            var parts;
+            if (chord.length > 6) {
+              parts = chord.split('-');
+            } else {
+              parts = chord.split('');
+            }
+            var maxFret = 0;
+            var minFret = Number.MAX_VALUE;
+            for (var i = 0; i < 6; i++) {
+              if (parts[i].toUpperCase() == "X") {
+                _chordPositions[i] = MUTED;
+              } else {
+                _chordPositions[i] = parseInt(parts[i]);
+                maxFret = Math.max(maxFret, _chordPositions[i]);
+                if (_chordPositions[i] != 0) {
+                  minFret = Math.min(minFret, _chordPositions[i]);
+                }
+              }
+            }
+            if (maxFret <= 5) {
+              _baseFret = 1;
+            } else {
+              _baseFret = minFret;
+            }
+          }
+        };
+
+        var CreateImage = function (ctx, layout) {
+          _ctx = ctx;
+          _graphics.FillRectangle(_backgroundBrush, 0, 0, _imageWidth, _imageHeight);
+          if (_error) {
+            var errorPen = Pen('red', 3);
+            _graphics.DrawLine(errorPen, 0, 0, _imageWidth, _imageHeight);
+            _graphics.DrawLine(errorPen, 0, _imageHeight, _imageWidth, 0);
+          } else {
+            if (typeof layout === 'undefined' || layout === '1') {
+              DrawChordBox();
+              DrawBars();
+              DrawChordPositionsAndFingers();
+              DrawChordName();
+              DrawStringNames();
+            } else if (layout === '2') {
+              DrawChordBox();
+              DrawChordPositions();
+              DrawBars();
+              DrawChordName();
+              DrawFingers();
+            }
+          }
+        };
+
+        var DrawChordBox = function () {
+          var pen = Pen(_foregroundBrush, _lineWidth);
+          var totalFretWidth = _fretWidth + _lineWidth;
+          for (var i = 0; i <= FRET_COUNT; i++) {
+            var y = _ystart + i * totalFretWidth;
+            _graphics.DrawLine(pen, _xstart, y, _xstart + _boxWidth - _lineWidth, y);
+          }
+          for (var i = 0; i < 6; i++) {
+            var x = _xstart + (i * totalFretWidth);
+            _graphics.DrawLine(pen, x, _ystart, x, _ystart + _boxHeight - _lineWidth);
+          }
+          if (_baseFret == 1) {
+            var nutHeight = _fretWidth / 2;
+            _graphics.FillRectangle(_foregroundBrush, _xstart - _lineWidth / 2, _ystart - nutHeight, _boxWidth, nutHeight);
+          }
+        };
+
+        var DrawBars = function () {
+          var bars = {};
+          var bar;
+          for (var i = 0; i < 5; i++) {
+            if (_chordPositions[i] != MUTED && _chordPositions[i] != OPEN && _fingers[i] != NO_FINGER && !bars.hasOwnProperty(_fingers[i])) {
+              bar = { 'Str': i, 'Pos': _chordPositions[i], 'Length': 0, 'Finger': _fingers[i] };
+              for (var j = i + 1; j < 6; j++) {
+                if (_fingers[j] == bar['Finger'] && _chordPositions[j] == _chordPositions[i]) {
+                  bar['Length'] = j - i;
+                }
+              }
+              if (bar['Length'] > 0) {
+                bars[bar['Finger']] = bar;
+              }
+            }
+          }
+          var pen = Pen(_foregroundBrush, _lineWidth * 3);
+          var totalFretWidth = _fretWidth + _lineWidth;
+          for (var b in bars) {
+            if (bars.hasOwnProperty(b)) {
+              bar = bars[b];
+              var xstart = _xstart + bar['Str'] * totalFretWidth;
+              var xend = xstart + bar['Length'] * totalFretWidth;
+              var y = _ystart + (bar['Pos'] - _baseFret + 1) * totalFretWidth - (totalFretWidth / 2);
+              pen = Pen(_foregroundBrush, _dotWidth / 2);
+              _graphics.DrawLine(pen, xstart, y, xend, y);
+            }
+          }
+        };
+
+        var DrawChordPositions = function () {
+          var yoffset = _ystart - _fretWidth;
+          var totalFretWidth = _fretWidth + _lineWidth;
+          for (var i = 0; i < _chordPositions.length; i++) {
+            var absolutePos = _chordPositions[i];
+            var relativePos = absolutePos - _baseFret + 1;
+            var xpos = _xstart - (0.5 * _fretWidth) + (0.5 * _lineWidth) + (i * totalFretWidth);
+            if (relativePos > 0) {
+              var ypos = relativePos * totalFretWidth + yoffset;
+              _graphics.FillCircle(_foregroundBrush, xpos, ypos, _dotWidth);
+            } else if (absolutePos == OPEN) {
+              var pen = Pen(_foregroundBrush, _lineWidth);
+              var ypos = _ystart - _fretWidth;
+              var markerXpos = xpos + ((_dotWidth - _markerWidth) / 2);
+              if (_baseFret == 1) {
+                ypos -= _nutHeight;
+              }
+              _graphics.DrawCircle(pen, markerXpos, ypos, _markerWidth);
+            } else if (absolutePos == MUTED) {
+              var pen = Pen(_foregroundBrush, _lineWidth * 1.5);
+              var ypos = _ystart - _fretWidth;
+              var markerXpos = xpos + ((_dotWidth - _markerWidth) / 2);
+              if (_baseFret == 1) {
+                ypos -= _nutHeight;
+              }
+              _graphics.DrawLine(pen, markerXpos, ypos, markerXpos + _markerWidth, ypos + _markerWidth);
+              _graphics.DrawLine(pen, markerXpos, ypos + _markerWidth, markerXpos + _markerWidth, ypos);
+            }
+          }
+        };
+
+        // En DrawChordPositionsAndFingers se utiliza _highlightBrush para rellenar los círculos donde se muestran los dedos.
+        var DrawChordPositionsAndFingers = function () {
+          var yoffset = _ystart - _fretWidth;
+          var totalFretWidth = _fretWidth + _lineWidth;
+          var font = Font(FONT_NAME, _fingerFontSize);
+          for (var i = 0; i < _chordPositions.length; i++) {
+            var absolutePos = _chordPositions[i];
+            var relativePos = absolutePos - _baseFret + 1;
+            var xpos = _xstart - (0.5 * _fretWidth) + (0.5 * _lineWidth) + (i * totalFretWidth);
+            if (relativePos > 0) {
+              var ypos = relativePos * totalFretWidth + yoffset;
+              // Se utiliza el color destacado para dibujar el círculo de digitación
+              _graphics.FillCircle(_highlightBrush, xpos, ypos, _dotWidth);
+              var finger = _fingers[i];
+              if (finger != NO_FINGER) {
+                var charSize = _graphics.MeasureString(finger.toString(), font);
+                _graphics.DrawString(finger.toString(), font, _backgroundBrush, xpos - (0.5 * charSize.Width) + _dotWidth / 2, ypos - (0.5 * charSize.Height) + _dotWidth / 2);
+              }
+            } else if (absolutePos == OPEN) {
+              var pen = Pen(_foregroundBrush, _lineWidth);
+              var ypos = _ystart - _fretWidth;
+              var markerXpos = xpos + ((_dotWidth - _markerWidth) / 2);
+              if (_baseFret == 1) {
+                ypos -= _nutHeight;
+              }
+              _graphics.DrawCircle(pen, markerXpos, ypos, _markerWidth);
+              var finger = _fingers[i];
+              if (finger != NO_FINGER) {
+                var charSize = _graphics.MeasureString(finger.toString(), font);
+                _graphics.DrawString(finger.toString(), font, _backgroundBrush, xpos - (0.5 * charSize.Width) + _dotWidth / 2, ypos - (0.5 * charSize.Height) + _dotWidth / 2);
+              }
+            } else if (absolutePos == MUTED) {
+              var pen = Pen(_foregroundBrush, _lineWidth * 1.5);
+              var ypos = _ystart - _fretWidth;
+              var markerXpos = xpos + ((_dotWidth - _markerWidth) / 2);
+              if (_baseFret == 1) {
+                ypos -= _nutHeight;
+              }
+              _graphics.DrawLine(pen, markerXpos, ypos, markerXpos + _markerWidth, ypos + _markerWidth);
+              _graphics.DrawLine(pen, markerXpos, ypos + _markerWidth, markerXpos + _markerWidth, ypos);
+              var finger = _fingers[i];
+              if (finger != NO_FINGER) {
+                var charSize = _graphics.MeasureString(finger.toString(), font);
+                _graphics.DrawString(finger.toString(), font, _backgroundBrush, xpos - (0.5 * charSize.Width) + _dotWidth / 2, ypos - (0.5 * charSize.Height) + _dotWidth / 2);
+              }
+            }
+          }
+        };
+
+        var DrawFingers = function () {
+          var xpos = _xstart + (0.5 * _lineWidth);
+          var ypos = _ystart + _boxHeight;
+          var font = Font(FONT_NAME, _fingerFontSize);
+          for (var f = 0; f < _fingers.length; f++) {
+            var finger = _fingers[f];
+            if (finger != NO_FINGER) {
+              var charSize = _graphics.MeasureString(finger.toString(), font);
+              _graphics.DrawString(finger.toString(), font, _foregroundBrush, xpos - (0.5 * charSize.Width), ypos - (0.5 * charSize.Height) + _dotWidth / 2);
+            }
+            xpos += (_fretWidth + _lineWidth);
+          }
+        };
+
+        var DrawStringNames = function () {
+          var xpos = _xstart + (0.5 * _lineWidth);
+          var ypos = _ystart + _boxHeight;
+          var font = Font(FONT_NAME, _guitarStringFontSize);
+          for (var s = 0; s < 6; s++) {
+            var guitarString = _stringNames[s];
+            var charSize = _graphics.MeasureString(guitarString, font);
+            _graphics.DrawString(guitarString, font, _foregroundBrush, xpos - (0.5 * charSize.Width), ypos);
+            xpos += (_fretWidth + _lineWidth);
+          }
+        };
+
+        var DrawChordName = function () {
+          var nameFont = Font(FONT_NAME, _nameFontSize);
+          var superFont = Font(FONT_NAME, _superScriptFontSize);
+          var name;
+          var supers;
+          if (_chordName.indexOf('_') == -1) {
+            name = _chordName;
+            supers = "";
+          } else {
+            var parts = _chordName.split('_');
+            name = parts[0];
+            supers = parts[1];
+          }
+          var stringSize = _graphics.MeasureString(name, nameFont);
+          var xTextStart = _xstart;
+          if (stringSize.Width < _boxWidth) {
+            xTextStart = _xstart + ((_boxWidth - stringSize.Width) / 2);
+          }
+          _graphics.DrawString(name, nameFont, _foregroundBrush, xTextStart, 0.2 * _superScriptFontSize);
+          if (supers != "") {
+            _graphics.DrawString(supers, superFont, _foregroundBrush, xTextStart + 0.8 * stringSize.Width, 0);
+          }
+          if (_baseFret > 1) {
+            var fretFont = Font(FONT_NAME, _fretFontSize);
+            var offset = (_fretFontSize - _fretWidth) / 2;
+            _graphics.DrawString(_baseFret + "fr", fretFont, _foregroundBrush, _xstart + _boxWidth + 0.4 * _fretWidth, _ystart - offset);
+          }
+        };
+
+        if (name == null || typeof name == 'undefined') {
+          _chordName = "";
+        } else {
+          _chordName = name.replace(" ", "");
+        }
+        ParseChord(chord);
+        ParseFingers(fingers);
+        ParseSize(size);
+        InitializeSizes();
+
+        return {
+          getWidth: getWidth,
+          getHeight: getHeight,
+          Draw: CreateImage
+        };
+      };
+
+      // Se actualiza GenerateChordHtml para aceptar los nuevos parámetros de color.
+      function GenerateChordHtml(name, positions, fingering, size, layout, stringNames, fgColor, bgColor, highlightColor) {
+        if (positions.length != 6 || fingering.length != 6) {
+          console.error('ChordJS cannot generate a chord diagram from invalid chord input! (Too many positions or fingers.)');
+          positions = 'xxxxxx';
+          fingering = '------';
+        }
+        var chordObj = ChordBoxImage(name, positions, fingering, size, stringNames, fgColor, bgColor, highlightColor);
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute('class', 'rendered-chord');
+        canvas.setAttribute('width', chordObj.getWidth());
+        canvas.setAttribute('height', chordObj.getHeight());
+        var ctx = canvas.getContext('2d');
+        chordObj.Draw(ctx, layout);
+        return canvas;
+      }
+
+      var ReplaceChordElements = function (baseEl) {
+        baseEl = baseEl || 'body';
+        var renderedChords = document.querySelector(baseEl).getElementsByClassName('rendered-chord');
+        while (renderedChords[0]) {
+          renderedChords[0].remove();
+        }
+        var chords = document.getElementsByTagName('chord');
+        for (var i = 0; i < chords.length; i++) {
+          var elt = chords[i];
+          var name = elt.getAttribute('name');
+          var positions = elt.getAttribute('positions');
+          var fingers = elt.getAttribute('fingers');
+          var size = elt.getAttribute('size');
+          var layout = elt.getAttribute('layout');
+          var stringNames = elt.getAttribute('strings');
+          var fgColor = elt.getAttribute('fgColor') || '#000';
+          var bgColor = elt.getAttribute('bgColor') || '#FFF';
+          var highlightColor = elt.getAttribute('highlightColor') || fgColor;
+          var canvas = GenerateChordHtml(name, positions, fingers, size, layout, stringNames, fgColor, bgColor, highlightColor);
+
+          // Aplicar tamaño personalizado mediante CSS, sin modificar los atributos del canvas
+          var customWidth = elt.getAttribute('customWidth');
+          var customHeight = elt.getAttribute('customHeight');
+          if (customWidth) {
+            canvas.style.width = customWidth + "px";
+          }
+          if (customHeight) {
+            canvas.style.height = customHeight + "px";
+          }
+
+          // Centrar el canvas
+          canvas.style.display = 'block';
+          canvas.style.margin = '0 auto';
+
+          elt.parentNode.insertBefore(canvas, elt);
+        }
+      };
+
+      return {
+        chord: ChordBoxImage,
+        replace: ReplaceChordElements,
+        generate: GenerateChordHtml
+      };
+
+    })();
+    var chords = ChordJS;
+  </script>
+</body>
+
+</html>
