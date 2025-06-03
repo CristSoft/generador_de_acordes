@@ -13,4 +13,4 @@ npx serve 8000
 
 y después de iniciar cualquiera de esos ingresás a:
 
-http://localhost:8000/piano/generador_acordes_piano.html
+http://localhost:8000/generador_acordes.html
